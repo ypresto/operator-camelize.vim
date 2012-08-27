@@ -88,6 +88,15 @@ g:operator_camelize_detect_function		*g:operator_camelize_detect_function*
 	Specify the function to detect
 	if a argument {word} is camelized, or not.
 
+g:operator_camelize_word_case		*g:operator_camelize_word_case*
+									(Default: "upper")
+		<Plug>(operator-camelize)'s action to lower- or upper- camelize
+
+		e.g., {value} is "word_word"
+		option value		{value} ~
+		"lower"			"wordWord"
+		"upper"			"WordWord"
+
 }}}
 ------------------------------------------------------------------------------
 FUNCTIONS					*operator-camelize-functions* {{{

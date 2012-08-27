@@ -96,15 +96,36 @@ endfunction "}}}
 
 
 " For a atom
+" e.g.: context == '_snake' => 'Snake'
+"       context == 'snake'  => 'snake'
+function! s:lower_camelize_atom(context) "{{{
+    if a:context.match[0] != '_'
+        return tolower(a:context.match)
+    endif
+    let word = a:context.match[0] == '_' ? a:context.match[1:] : a:context.match
+    return toupper(word[0]) . tolower(word[1:])
+endfunction "}}}
+
+" For a atom
 " e.g.: 'snake' => 'Snake'
-function! s:camelize_atom(context) "{{{
+function! s:upper_camelize_atom(context) "{{{
     let word = a:context.match[0] == '_' ? a:context.match[1:] : a:context.match
     return toupper(word[0]) . tolower(word[1:])
 endfunction "}}}
 
 " For a word
+" e.g.: 'snake_case' => 'snakeCase'
+function! s:lower_camelize_word(context) "{{{
+    return s:_camelize_word(a:context, 'lower')
+endfunction "}}}
+
+" For a word
 " e.g.: 'snake_case' => 'SnakeCase'
-function! s:camelize_word(context) "{{{
+function! s:upper_camelize_word(context) "{{{
+    return s:_camelize_word(a:context, 'upper')
+endfunction "}}}
+
+function! s:_camelize_word(context, word_case) "{{{
     " NOTE: Nested sub-replace-expression can't work...omg
     " (:help sub-replace-expression)
     "
@@ -131,18 +152,42 @@ function! s:camelize_word(context) "{{{
         endif
     endif
 
+    if a:word_case == 'lower'
+        let atom_camelizer = 's:lower_camelize_atom'
+    elseif a:word_case == 'upper'
+        let atom_camelizer = 's:upper_camelize_atom'
+    endif
+
     return s:map_text_with_regex(
     \   word,
-    \   's:camelize_atom',
+    \   atom_camelizer,
     \   '\<[a-zA-Z0-9]\+\|_[a-zA-Z0-9]\+'.'\C'
     \)
 endfunction "}}}
 
 " For <Plug>(operator-camelize)
 function! operator#camelize#op_camelize(motion_wiseness) "{{{
-    call s:replace_range('s:camelize_word', '\w\+', a:motion_wiseness)
+    if g:operator_camelize_word_case == 'lower'
+        call s:replace_range('s:lower_camelize_word', '\w\+', a:motion_wiseness)
+    elseif g:operator_camelize_word_case == 'upper'
+        call s:replace_range('s:upper_camelize_word', '\w\+', a:motion_wiseness)
+    else
+        echohl WarningMsg
+        echomsg "g:operator_camelize_word_case is invalid value '"
+        \       . g:operator_camelize_word_case . "'."
+        echohl None
+    endif
 endfunction "}}}
 
+" For <Plug>(operator-lower-camelize)
+function! operator#camelize#op_lower_camelize(motion_wiseness) "{{{
+    call s:replace_range('s:lower_camelize_word', '\w\+', a:motion_wiseness)
+endfunction "}}}
+
+" For <Plug>(operator-upper-camelize)
+function! operator#camelize#op_upper_camelize(motion_wiseness) "{{{
+    call s:replace_range('s:upper_camelize_word', '\w\+', a:motion_wiseness)
+endfunction "}}}
 
 
 " For a atom
@@ -216,7 +261,16 @@ function! s:toggle_word(context) "{{{
     if {camelized}(a:context.match)
         return s:decamelize_word(a:context)
     else
-        return s:camelize_word(a:context)
+        if g:operator_camelize_word_case == 'lower'
+            return s:lower_camelize_word(a:context)
+        elseif g:operator_camelize_word_case == 'upper'
+            return s:upper_camelize_word(a:context)
+        else
+            echohl WarningMsg
+            echomsg "g:operator_camelize_word_case is invalid value '"
+            \       . g:operator_camelize_word_case . "'."
+            echohl None
+        endif
     endif
 endfunction "}}}
 

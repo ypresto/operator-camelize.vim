@@ -21,9 +21,14 @@ endif
 if !exists('g:operator_camelize_detect_function')
     let g:operator_camelize_detect_function = 'operator#camelize#is_camelized'
 endif
+if !exists('g:operator_camelize_word_case')
+   let g:operator_camelize_word_case = 'upper'
+endif
 
-call operator#user#define('camelize', 'operator#camelize#op_camelize')
-call operator#user#define('decamelize', 'operator#camelize#op_decamelize')
+call operator#user#define('camelize'       , 'operator#camelize#op_camelize')
+call operator#user#define('lower-camelize' , 'operator#camelize#op_lower_camelize')
+call operator#user#define('upper-camelize' , 'operator#camelize#op_upper_camelize')
+call operator#user#define('decamelize'     , 'operator#camelize#op_decamelize')
 call operator#user#define('camelize-toggle', 'operator#camelize#op_camelize_toggle')
 
 
