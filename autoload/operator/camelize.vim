@@ -93,7 +93,11 @@ function! s:replace_range(funcname, pattern, motion_wiseness) "{{{
     call s:paste_range(a:motion_wiseness, text)
 endfunction "}}}
 
-
+" Internal
+function! s:_split_prefix(a:word) "{{{
+    let prefix_len = matchend(a:word, '^_*')
+    return [word[:prefix_len], word[prefix_len:]]
+endfunction "}}}
 
 " For a atom
 " e.g.: context == '_snake' => 'Snake'
@@ -131,19 +135,21 @@ function! s:_camelize_word(context, word_case) "{{{
     "
     " return substitute(tolower(a:context.match), '^[a-z]\|_\zs[a-z]'.'\C', '\=toupper(submatch(0))', 'g')
 
-    let word = a:context.match
+    let split_word = s:_split_prefix(a:context.match)
+    let prefix = split_word[0]
+    let word = split_word[1]
 
-    if word =~# '^[A-Z]\+$'
+    if word =~# '^[A-Z_]\+$'
         let action = g:operator_camelize_all_uppercase_action
         if action ==# 'nop'
             " "WORD" => "WORD"
-            return word
+            return prefix . word
         elseif action ==# 'lowercase'
             " "WORD" => "word"
-            return tolower(word)
+            return prefix . tolower(word)
         elseif action ==# 'camelize'
             " "WORD" => "Word"
-            return toupper(word[0]) . tolower(word[1:])
+            return prefix . toupper(word[0]) . tolower(word[1:])
         else
             echohl WarningMsg
             echomsg "g:operator_camelize_all_uppercase_action is invalid value '"
@@ -158,7 +164,7 @@ function! s:_camelize_word(context, word_case) "{{{
         let atom_camelizer = 's:upper_camelize_atom'
     endif
 
-    return s:map_text_with_regex(
+    return prefix . s:map_text_with_regex(
     \   word,
     \   atom_camelizer,
     \   '\<[a-zA-Z0-9]\+\|_[a-zA-Z0-9]\+'.'\C'
@@ -205,16 +211,18 @@ function! s:decamelize_word(context) "{{{
     "
     " return substitute(a:context.match, '^[A-Z]\|[a-z]\zs[A-Z]'.'\C', '\='_' . tolower(submatch(0))', 'g')
 
-    let word = a:context.match
+    let split_word = s:_split_prefix(a:context.match)
+    let prefix = split_word[0]
+    let word = split_word[1]
 
-    if word =~# '^[A-Z]\+$'
+    if word =~# '^[A-Z_]\+$'
         let action = g:operator_decamelize_all_uppercase_action
         if action ==# 'nop'
             " "WORD" => "WORD"
-            return word
+            return prefix . word
         elseif action ==# 'lowercase'
             " "WORD" => "word"
-            return word
+            return prefix . tolower(word)
         else
             echohl WarningMsg
             echomsg "g:operator_decamelize_all_uppercase_action is invalid value '"
@@ -223,7 +231,7 @@ function! s:decamelize_word(context) "{{{
         endif
     endif
 
-    return s:map_text_with_regex(
+    return prefix . s:map_text_with_regex(
     \   word,
     \   's:decamelize_atom',
     \   '^[a-z0-9]\+\ze[A-Z]\|^[A-Z][a-z0-9]*'.'\C',

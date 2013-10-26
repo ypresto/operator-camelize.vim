@@ -39,19 +39,43 @@ function! s:run() "{{{
 
 
     " Camelize
-    let r = s:call_local(sid, 'camelize_text', ['snake_case other_text'])
+    let r = s:call_local(sid, 'lower_camelize_word', [{'match': 'snake_case'}])
     Is
     \   r,
-    \   'SnakeCase OtherText',
-    \   'snake_case other_text => SnakeCase OtherText'
+    \   'snakeCase',
+    \   'snake_case => snakeCase'
 
-    let r = s:call_local(sid, 'camelize_word', [{'match': 'snake_case'}])
+    let r = s:call_local(sid, 'lower_camelize_word', [{'match': '__snake_case'}])
+    Is
+    \   r,
+    \   '__snakeCase',
+    \   '__snake_case => __snakeCase'
+
+    let r = s:call_local(sid, 'lower_camelize_atom', [{'match': 'snake'}])
+    Is
+    \   r,
+    \   'snake',
+    \   'snake => snake'
+
+    let r = s:call_local(sid, 'lower_camelize_atom', [{'match': '_snake'}])
+    Is
+    \   r,
+    \   'Snake',
+    \   '_snake => Snake'
+
+    let r = s:call_local(sid, 'upper_camelize_word', [{'match': 'snake_case'}])
     Is
     \   r,
     \   'SnakeCase',
     \   'snake_case => SnakeCase'
 
-    let r = s:call_local(sid, 'camelize_atom', [{'match': 'snake'}])
+    let r = s:call_local(sid, 'upper_camelize_word', [{'match': '__snake_case'}])
+    Is
+    \   r,
+    \   '__SnakeCase',
+    \   '__snake_case => __SnakeCase'
+
+    let r = s:call_local(sid, 'upper_camelize_atom', [{'match': 'snake'}])
     Is
     \   r,
     \   'Snake',
@@ -59,12 +83,6 @@ function! s:run() "{{{
 
 
     " Decamelize (PascalCase)
-    let r = s:call_local(sid, 'decamelize_text', ['CamelCase OtherText'])
-    Is
-    \   r,
-    \   'camel_case other_text',
-    \   'CamelCase OtherText => camel_case other_text'
-
     let r = s:call_local(sid, 'decamelize_word', [{'match': 'CamelCase'}])
     Is
     \   r,
